@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LINE発注 LIFF通信診断（送信なし）</title>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>body{font-family:Arial,"Noto Sans JP",sans-serif;background:#f4f6f8;color:#20252a;margin:0}header{background:#06c755;color:white;padding:16px}main{max-width:650px;margin:auto;padding:16px}.panel{background:white;border-radius:12px;padding:16px;margin:12px 0;border:1px solid #ddd}button{display:block;width:100%;border:0;background:#31506e;color:white;padding:15px;border-radius:8px;margin:9px 0;font-size:17px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.8}small{color:#555}</style>
+</head><body><header><strong>アーリーバード LINE発注</strong><div>LIFF・共有機能 診断専用</div></header><main>
+<div class="panel"><p>このページは診断専用です。発注データを送信せず、LINE接続環境だけを確認します。</p>
+<pre id="result">診断準備中…</pre><button id="refresh">診断を更新</button><button id="copy">診断結果をコピー</button></div>
+<div class="panel"><small>同じURLを①LINE内ブラウザー、②Chromeで開き、表示を比較してください。個人ID・アクセストークンは表示しません。通信状態の判定は参考情報です。</small></div></main>
+<script>
+'use strict';
+const LIFF_ID='2011692016-3GJwLan2';
+let initStatus='確認中', initError='なし';
+const out=document.getElementById('result');
+function value(fn){try{return String(fn())}catch(e){return '取得不可: '+(e.message||e.name)}}
+function report(){
+const sdk=typeof liff!=='undefined';
+const lines=[
+'確認時刻：'+new Date().toLocaleString('ja-JP'),
+'HTTPS：'+String(location.protocol==='https:'),
+'接続：'+(navigator.onLine?'オンライン判定':'オフライン判定'),
+'LIFF SDK：'+(sdk?'読み込み済み':'読み込み失敗'),
+'LIFF初期化：'+initStatus,
+'初期化エラー：'+initError,
+'LINE内ブラウザー：'+(sdk?value(()=>liff.isInClient()):'判定不可'),
+'LIFFログイン：'+(sdk?value(()=>liff.isLoggedIn()):'判定不可'),
+'送信先選択API：'+(sdk?value(()=>liff.isApiAvailable('shareTargetPicker')):'判定不可'),
+'標準共有API：'+(typeof navigator.share==='function'?'利用可能':'利用不可'),
+'クリップボードAPI：'+(navigator.clipboard&&navigator.clipboard.writeText?'利用可能':'利用不可'),
+'OS：'+(sdk?value(()=>liff.getOS()):'判定不可'),
+'LINEバージョン：'+(sdk?value(()=>liff.getLineVersion()):'判定不可')
+];
+out.textContent=lines.join('\n');return out.textContent;
+}
+document.getElementById('refresh').onclick=report;
+document.getElementById('copy').onclick=async()=>{
+try{await navigator.clipboard.writeText(report());alert('診断結果をコピーしました')}catch(e){alert('コピーできません。画面の文字を選択してください')}
+};
+if(typeof liff==='undefined'){initStatus='SDK読み込み失敗';report()}
+else {report();liff.init({liffId:LIFF_ID}).then(()=>{initStatus='成功';report()}).catch(e=>{initStatus='失敗';initError=String(e.message||e).slice(0,250);report()})}
+</script></body></html>
